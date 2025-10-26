@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>ULB YouTube Leaderboard</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <h1>📊 ULB YouTube Leaderboard</h1>
+    <table>
+        <thead>
+            <tr>
+                <th>Rank</th>
+                <th>Channel</th>
+                <th>Subscribers</th>
+                <th>Total Views</th>
+                <th>Videos</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for i, entry in enumerate(leaderboard, start=1) %}
+            <tr>
+                <td>{{ i }}</td>
+                <td>{{ entry.Channel }}</td>
+                <td>{{ entry.Subscribers }}</td>
+                <td>{{ entry.TotalViews }}</td>
+                <td>{{ entry.Videos }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</body>
+</html>
