@@ -7,8 +7,8 @@ function sortTable(n) {
   let asc = true;
 
   rows.sort((a, b) => {
-    let x = a.cells[n].innerText;
-    let y = b.cells[n].innerText;
+    let x = a.cells[n].innerText.replace(/,/g, '');
+    let y = b.cells[n].innerText.replace(/,/g, '');
 
     if(!isNaN(x) && !isNaN(y)) { x = parseInt(x); y = parseInt(y); }
 
@@ -20,41 +20,44 @@ function sortTable(n) {
 }
 
 // -------------------
-// Example Graph (Subscriber Growth)
+// Fetch historical data and draw charts
 // -------------------
-// In production, you’d read CSV data or pass historical stats from Flask
-const labels = ["2025-10-20", "2025-10-21", "2025-10-22", "2025-10-23"];
-const data = {
-  labels: labels,
-  datasets: [
-    {
-      label: 'Your Channel',
-      backgroundColor: 'rgba(54, 162, 235, 0.5)',
-      borderColor: 'rgba(54, 162, 235, 1)',
-      data: [540, 560, 580, 600],
-    },
-    {
-      label: 'Friend 1',
-      backgroundColor: 'rgba(255, 99, 132, 0.5)',
-      borderColor: 'rgba(255, 99, 132, 1)',
-      data: [420, 430, 440, 450],
-    }
-  ]
-};
+async function drawCharts() {
+    const response = await fetch("/history");
+    const data = await response.json(); // { "Your Channel": [...], "Friend 1": [...] }
 
-const config = {
-  type: 'line',
-  data: data,
-  options: {
-    responsive: true,
-    plugins: {
-      legend: { position: 'top' },
-      title: { display: true, text: 'Subscribers Over Time' }
-    }
-  },
-};
+    const labels = data[Object.keys(data)[0]].map(entry => entry.Date); // Dates
+    const datasets = [];
 
-new Chart(
-  document.getElementById('subsChart'),
-  config
-);
+    const colors = ["rgba(54,162,235,0.5)", "rgba(255,99,132,0.5)", "rgba(75,192,192,0.5)"];
+
+    Object.keys(data).forEach((channel, idx) => {
+        datasets.push({
+            label: channel,
+            data: data[channel].map(entry => entry.Subscribers),
+            backgroundColor: colors[idx % colors.length],
+            borderColor: colors[idx % colors.length].replace("0.5", "1"),
+            fill: false,
+            tension: 0.2
+        });
+    });
+
+    const ctx = document.getElementById('subsChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'line',
+        data: { labels, datasets },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { position: 'top' },
+                title: { display: true, text: 'Subscribers Over Time' }
+            },
+            scales: {
+                y: { beginAtZero: true }
+            }
+        }
+    });
+}
+
+// Call the function
+drawCharts();
