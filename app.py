@@ -1,19 +1,11 @@
-from flask import Flask, render_template
+from flask import Flask, render_template, jsonify
 from googleapiclient.discovery import build
-import csv
-import datetime
-import os
+import csv, datetime, os
 from dotenv import load_dotenv
 
 load_dotenv()
 API_KEY = os.getenv("YOUTUBE_API_KEY")
-
-CHANNELS = {
-    "Your Channel": "YOUR_CHANNEL_ID",
-    "Friend 1": "CHANNEL_ID_1",
-    "Friend 2": "CHANNEL_ID_2"
-}
-
+CHANNELS = {"Your Channel": "YOUR_CHANNEL_ID","Friend 1": "CHANNEL_ID_1"}
 CSV_FILE = "ulb_leaderboard.csv"
 app = Flask(__name__)
 youtube = build('youtube', 'v3', developerKey=API_KEY)
@@ -21,10 +13,7 @@ youtube = build('youtube', 'v3', developerKey=API_KEY)
 def fetch_stats():
     leaderboard = []
     for name, channel_id in CHANNELS.items():
-        request = youtube.channels().list(
-            part="statistics,snippet",
-            id=channel_id
-        )
+        request = youtube.channels().list(part="statistics,snippet", id=channel_id)
         response = request.execute()
         stats = response['items'][0]['statistics']
         leaderboard.append({
@@ -43,7 +32,6 @@ def save_csv(leaderboard):
             writer.writeheader()
     except FileExistsError:
         pass
-
     with open(CSV_FILE, "a", newline="") as csvfile:
         writer = csv.DictWriter(csvfile, fieldnames=["Date","Channel","Subscribers","TotalViews","Videos"])
         for entry in leaderboard:
@@ -55,6 +43,16 @@ def index():
     leaderboard = fetch_stats()
     save_csv(leaderboard)
     return render_template("index.html", leaderboard=leaderboard)
+
+@app.route("/history")
+def history():
+    data = {}
+    with open(CSV_FILE) as f:
+        reader = csv.DictReader(f)
+        for row in reader:
+            for channel in CHANNELS:
+                data.setdefault(channel, []).append({"Date": row["Date"], "Subscribers": int(row["Subscribers"])})
+    return jsonify(data)
 
 if __name__ == "__main__":
     app.run(debug=True)
