@@ -4,17 +4,19 @@
     <meta charset="UTF-8">
     <title>ULB YouTube Leaderboard</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
     <h1>📊 ULB YouTube Leaderboard</h1>
-    <table>
+
+    <table id="leaderboard">
         <thead>
             <tr>
-                <th>Rank</th>
-                <th>Channel</th>
-                <th>Subscribers</th>
-                <th>Total Views</th>
-                <th>Videos</th>
+                <th onclick="sortTable(0)">Rank</th>
+                <th onclick="sortTable(1)">Channel</th>
+                <th onclick="sortTable(2)">Subscribers</th>
+                <th onclick="sortTable(3)">Total Views</th>
+                <th onclick="sortTable(4)">Videos</th>
             </tr>
         </thead>
         <tbody>
@@ -29,5 +31,10 @@
             {% endfor %}
         </tbody>
     </table>
+
+    <h2>Subscriber Growth Over Time</h2>
+    <canvas id="subsChart" width="800" height="400"></canvas>
+
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
 </body>
 </html>
